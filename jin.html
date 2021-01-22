@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <h1>圖片風格轉換</h1>
+    <form method="post" enctype="multipart/form-data" id="upload-file">
+        <fieldset>
+            <label for="file">上傳</label>
+            <input type="file" name="image" id="image">
+            <button id="upload-file-btn" onclick="transfer()" type="button">轉換</button>
+        </fieldset>
+    </form>
+    <!-- <form method="post" enctype="text/plain" id="search"> -->
+    <form method='post' action="/post_submit" id="search"> 
+        <fieldset>
+            <label for="text"> 關鍵字</label>
+            <input type="text" name="word" id="word">
+            <button id="search-btn" onclick="goo_search()" type="button">搜尋</button>
+        </fieldset>
+    </form>
+    <div id="wrapper" style="width: 800px; display:table ;">
+        <div id="jsonOutput" style="width:400px; display:table-cell;">
+            <p>Response:</p>
+            <img id="genPre" width="400">
+            <canvas></canvas>
+        </div>
+        <div id="imageDiv" style="width: 400px; display:table ;">
+            <p>image:</p>
+            <img id="imgPre" width="400">
+        </div>
+    </div>
+    <div>
+        <img id="imgPre1" width="200">
+        <img id="imgPre2" width="200">
+        <img id="imgPre3" width="200">
+        <img id="imgPre4" width="200">
+        <img id="imgPre5" width="200">
+        <img id="imgPre6" width="200">
+        <img id="imgPre7" width="200">
+        <img id="imgPre8" width="200">
+        <img id="imgPre9" width="200">
+        <img id="imgPre10" width="200">
+    </div>
+    <!-- <script src="./bootstrap-4.4.1-dist/js/bootstrap.min.js"></script> -->
+    <script src="./js/jquery-3.4.1.min.js"></script>
+    <script>
+        function readURL(input) {
+            if (input.files && input.files[0]) {
+                //藉由 FileReader 物件，Web 應用程式能以非同步（asynchronously）方式讀取儲存在用戶端的檔案（或原始資料暫存）內容
+                var reader = new FileReader();
+                //load 事件處理器，於讀取完成時觸發。
+                reader.onload = function (e) {
+                    $('#imgPre').attr('src', e.target.result);
+                };
+                //開始讀取指定的 Blob，讀取完成後屬性 result 將以 data: URL 格式（base64 編碼）的字串來表示讀入的資料內容。
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
+        $("#image").change(function () {
+            readURL(this);
+        });
+         
+        function getBase64Image(img) {
+            // Create an empty canvas element
+            var canvas = document.createElement("canvas");
+            canvas.width = img.width;
+            canvas.height = img.height;
+
+            // Copy the image contents to the canvas
+            var ctx = canvas.getContext("2d");
+            ctx.drawImage(img, 0, 0);
+
+            // Get the data-URL formatted image
+            // Firefox supports PNG and JPEG. You could check img.src to
+            // guess the original format, but be aware the using "image/jpg"
+            // will re-encode the image.
+            var dataURL = canvas.toDataURL("image/jpg");
+            return dataURL.replace(/^data:image\/(png|jpg);base64,/, "");
+         }
+        
+        function transfer() {
+            var form_data = new FormData($('#upload-file')[0]);
+
+            $.ajax({
+                type: 'POST',
+                url: 'http://127.0.0.1:5555/style_transfer',
+                data: form_data,
+                contentType: false,
+                cache: false,
+                processData: false,
+                success: function (data) {
+                    console.log('Success!');
+                }
+            }).done(function (result) {
+                // console.log(result);
+                //$("#genPre").attr('src', "C:\\Users\\Student\\source\\repos\\FlaskWebProject1\\FlaskWebProject1\\generated_image.jpg");
+                $("#genPre").attr('src', "data:image/jpg;base64," + result);
+
+                //$("#genPre").attr('src',  'data:image/jpg;base64,' + getBase64Image(result));
+                //img.attr('src',  result);
+                //var image = document.createElement("img");
+                //image.src = "data:image/jpg;base64," + result; 
+                //document.body.appendChild(image); 
+            }).fail(function (error) {
+                alert(error.statusText);
+            });
+        };
+        function goo_search() {
+            var form_data = new FormData($('#search')[0]);
+
+            $.ajax({
+                type: 'POST',
+                url: 'http://127.0.0.1:5555/google_image',
+                // data: $('input#word').val(),
+                data: form_data,
+                contentType: false,
+                cache: false,
+                processData: false,
+                success: function (data) {
+                    console.log('Success!');
+                }
+            }).done(function (result) {
+                
+                console.log(Object.values(result)[0][0]);
+                // $("#imgPre").attr('src',)
+                for (i = 1; i < 11; i++) {
+                    $("#imgPre"+i).attr('src',Object.values(result)[0][i]);
+                }
+            }).fail(function (error) {
+                alert(error.statusText);
+            });
+        }
+    </script>
+</body>
+</html>
